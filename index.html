@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>Image Splitter – Webtoon & Manhwa</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, Roboto, sans-serif;
+    }
+    body {
+      background: #070b2b;
+      color: #e0e5f0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .topbar {
+      height: 70px;
+      background: #11153d;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 15px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .menuBtn {
+      width: 45px;
+      height: 45px;
+      border: none;
+      border-radius: 14px;
+      background: #8b5cf6;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+    .menuBtn:hover { background: #a075ff; }
+    .menuBtn svg { stroke: white; width: 24px; height: 24px; }
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      background: linear-gradient(90deg, #8b5cf6, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sidebar {
+      position: fixed;
+      left: -340px;
+      top: 0;
+      width: 320px;
+      height: 100vh;
+      background: #11153d;
+      padding: 20px;
+      transition: 0.35s;
+      z-index: 2000;
+      overflow-y: auto;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar.active { left: 0; }
+    .closeBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #ec4899;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .closeBtn svg { stroke: white; width: 24px; height: 24px; }
+    .sidebarTitle {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg, #8b5cf6, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sidebarSection {
+      margin-top: 25px;
+    }
+    .sidebarSection h3 {
+      margin-bottom: 12px;
+      color: #ccc;
+    }
+    .sideBtn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 16px;
+      background: #1f2768;
+      color: white;
+      margin-bottom: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sideBtn:hover { background: #2d3790; transform: translateY(-2px); }
+    .sideBtn svg { stroke: white; width: 22px; height: 22px; flex-shrink: 0; }
+    .stats {
+      background: #1b2159;
+      padding: 15px;
+      border-radius: 18px;
+      line-height: 1.8;
+      color: #ccc;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 20px;
+      flex: 1;
+    }
+    .panel {
+      background: #11153d;
+      padding: 20px;
+      border-radius: 25px;
+      flex: 1 1 350px;
+      max-width: 420px;
+      height: fit-content;
+    }
+    .content {
+      flex: 3 1 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .box {
+      background: #11153d;
+      padding: 20px;
+      border-radius: 25px;
+    }
+    .boxTitle {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .previewGrid,
+    .outputGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .card {
+      background: #1b2159;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .card img {
+      width: 100%;
+      height: 260px;
+      object-fit: contain;
+      background: #000;
+    }
+    .cardInfo {
+      padding: 12px;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 5px;
+    }
+    .cardInfo a {
+      padding: 6px 12px;
+      background: #8b5cf6;
+      border-radius: 12px;
+      text-decoration: none;
+      color: white;
+      font-size: 13px;
+    }
+    .uploadBox {
+      height: 160px;
+      border: 2px dashed #8b5cf6;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+      background: #1b2159;
+      transition: 0.3s;
+      margin-bottom: 20px;
+    }
+    .uploadBox:hover { background: #252d70; }
+    .uploadBox svg { stroke: #8b5cf6; width: 48px; height: 48px; margin-bottom: 10px; }
+    .uploadBox span { font-weight: 600; }
+    .uploadBox small { color: #aaa; margin-top: 4px; }
+
+    .section { margin-top: 20px; }
+    .section h3 { margin-bottom: 10px; }
+    .modeButtons, .formatButtons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .modeButtons button, .formatButtons button {
+      padding: 12px;
+      border: none;
+      border-radius: 14px;
+      background: #222960;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    .modeButtons button:hover, .formatButtons button:hover { background: #3b4380; }
+    .active { background: #8b5cf6 !important; }
+    .rangeBox {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    input[type=range] { width: 100%; }
+    .paramRow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .paramRow input[type=number] {
+      background: #0c1522;
+      border: 1px solid #3f5270;
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      color: white;
+      width: 70px;
+      text-align: center;
+    }
+    .mainBtn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 18px;
+      font-size: 17px;
+      font-weight: bold;
+      margin-top: 15px;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: 0.2s;
+    }
+    .mainBtn svg { stroke: currentColor; width: 24px; height: 24px; }
+    .splitBtn { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+    .splitBtn:hover { opacity: 0.95; }
+    .downloadBtn { background: #84cc16; color: black; }
+    .downloadBtn:hover { background: #a3e635; }
+    .overlapBox { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+
+    @media (max-width: 900px) {
+      .container { flex-direction: column; }
+      .panel { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <button class="menuBtn" onclick="toggleSidebar()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <div class="logo">Image Splitter</div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <button class="closeBtn" onclick="toggleSidebar()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 6l12 12"/><path d="M18 6L6 18"/>
+    </svg>
+  </button>
+  <div class="sidebarTitle">Bulk Tools</div>
+  <div class="sidebarSection">
+    <h3>Folder & Files</h3>
+    <button class="sideBtn" onclick="document.getElementById('folderInputDesktop').click()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H3z"/>
+      </svg>
+      Import Entire Folder
+    </button>
+    <button class="sideBtn" onclick="document.getElementById('multiFileInput').click()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="4" y="5" width="14" height="10" rx="2"/>
+        <rect x="7" y="8" width="14" height="10" rx="2"/>
+      </svg>
+      Select Multiple Images
+    </button>
+    <button class="sideBtn" onclick="urlPrompt()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M4 20h16"/>
+      </svg>
+      Load from URL
+    </button>
+  </div>
+  <div class="sidebarSection">
+    <h3>Utilities</h3>
+    <button class="sideBtn" onclick="togglePreview()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      Toggle Preview
+    </button>
+    <button class="sideBtn" onclick="clearAll()">
+      <!-- Using X icon for clear (we can later replace with trash if provided) -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 6l12 12"/><path d="M18 6L6 18"/>
+      </svg>
+      Clear All
+    </button>
+  </div>
+  <div class="sidebarSection">
+    <h3>Info</h3>
+    <div class="stats">
+      <div>Total Images: <span id="totalImages">0</span></div>
+      <div>Total Outputs: <span id="totalOutputs">0</span></div>
+      <div>Mode: <span id="currentMode">vertical</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+  <div class="panel">
+    <div class="logo" style="margin-bottom:15px;">Image Splitter</div>
+    <div style="color:#aaa; margin-bottom:20px;">Split Webtoon & Manhwa pages instantly.</div>
+
+    <!-- Main upload box (accepts images/ZIP/CBZ) -->
+    <div class="uploadBox" onclick="document.getElementById('mainFileInput').click()">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M7 18h10a4 4 0 0 0 0-8 5 5 0 0 0-9.7-1.5A4 4 0 0 0 7 18z"/>
+        <path d="M12 12v6"/>
+        <path d="M9 15l3-3 3 3"/>
+      </svg>
+      <span>Upload Images / Files</span>
+      <small>ZIP, CBZ, PNG, JPG, WEBP</small>
+    </div>
+    <input type="file" id="mainFileInput" hidden multiple accept="image/*,.zip,.cbz,application/zip,application/x-cbz">
+    <input type="file" id="multiFileInput" hidden multiple accept="image/*">
+    <input type="file" id="folderInputDesktop" hidden multiple webkitdirectory directory accept="image/*">
+
+    <!-- Modes -->
+    <div class="section">
+      <h3>Split Mode</h3>
+      <div class="modeButtons">
+        <button id="verticalBtn" class="active" onclick="setMode('vertical')">Vertical</button>
+        <button id="horizontalBtn" onclick="setMode('horizontal')">Horizontal</button>
+        <button id="gridBtn" onclick="setMode('grid')">Grid</button>
+      </div>
+    </div>
+
+    <div class="section" id="quantitySection">
+      <div class="rangeBox">
+        <h3>Blocks</h3>
+        <span id="blocksText">2</span>
+      </div>
+      <input type="range" id="blocksRange" min="2" max="20" value="2" oninput="blocksChanged(this.value)">
+      <div class="paramRow">
+        <input type="number" id="blocksNum" value="2" min="2" max="20" onchange="blocksNumChanged(this.value)">
+        <small>max 20</small>
+      </div>
+    </div>
+
+    <div class="section" id="gridSection" style="display:none;">
+      <h3>Grid</h3>
+      <div class="paramRow">
+        <span>Cols:</span><input type="number" id="gridCols" value="2" min="1" max="10">
+        <span>Rows:</span><input type="number" id="gridRows" value="2" min="1" max="10">
+      </div>
+    </div>
+
+    <div class="overlapBox">
+      <input type="checkbox" id="overlapCheckbox">
+      <label>Overlap (px):</label>
+      <input type="number" id="overlapPixels" value="10" min="0" max="100" style="width:60px;">
+    </div>
+
+    <div class="section">
+      <div class="rangeBox">
+        <h3>Quality</h3>
+        <span id="qualityText">92</span>
+      </div>
+      <input type="range" id="quality" min="1" max="100" value="92" oninput="document.getElementById('qualityText').innerText=this.value">
+    </div>
+
+    <div class="section">
+      <h3>Output Format</h3>
+      <div class="formatButtons">
+        <button class="active" onclick="setFormat('image/png', this)">PNG</button>
+        <button onclick="setFormat('image/jpeg', this)">JPG</button>
+        <button onclick="setFormat('image/webp', this)">WEBP</button>
+      </div>
+      <label style="margin-top:10px; display:block;">
+        <input type="checkbox" id="keepOriginalFormat"> Same as input
+      </label>
+    </div>
+
+    <button class="mainBtn splitBtn" onclick="splitImages()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/>
+        <path d="M8 8l12 8"/><path d="M8 16l12-8"/>
+      </svg>
+      Split Images
+    </button>
+    <button class="mainBtn downloadBtn" onclick="downloadZip()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 21h16"/>
+      </svg>
+      Download ZIP
+    </button>
+  </div>
+
+  <div class="content">
+    <div class="box">
+      <div class="boxTitle">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+          <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        Preview (uploaded images)
+      </div>
+      <div class="previewGrid" id="previewGrid"></div>
+    </div>
+    <div class="box">
+      <div class="boxTitle">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+          <rect x="4" y="5" width="14" height="10" rx="2"/>
+          <rect x="7" y="8" width="14" height="10" rx="2"/>
+        </svg>
+        Output Images
+      </div>
+      <div class="outputGrid" id="outputGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    let images = [];
+    let results = [];
+    let splitMode = 'vertical';
+    let outputFormat = 'image/png';
+    let keepOriginal = false;
+
+    const mainFileInput = document.getElementById('mainFileInput');
+    const multiFileInput = document.getElementById('multiFileInput');
+    const folderInputDesktop = document.getElementById('folderInputDesktop');
+    const previewGrid = document.getElementById('previewGrid');
+    const outputGrid = document.getElementById('outputGrid');
+    const blocksRange = document.getElementById('blocksRange');
+    const blocksNum = document.getElementById('blocksNum');
+    const gridSection = document.getElementById('gridSection');
+    const quantitySection = document.getElementById('quantitySection');
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    function setMode(mode) {
+      splitMode = mode;
+      document.getElementById('currentMode').textContent = mode;
+      document.querySelectorAll('.modeButtons button').forEach(b => b.classList.remove('active'));
+      if (mode === 'vertical') document.getElementById('verticalBtn').classList.add('active');
+      else if (mode === 'horizontal') document.getElementById('horizontalBtn').classList.add('active');
+      else document.getElementById('gridBtn').classList.add('active');
+      quantitySection.style.display = (mode === 'vertical' || mode === 'horizontal') ? 'block' : 'none';
+      gridSection.style.display = (mode === 'grid') ? 'block' : 'none';
+    }
+
+    function blocksChanged(val) {
+      blocksNum.value = val;
+      document.getElementById('blocksText').textContent = val;
+    }
+    function blocksNumChanged(val) {
+      let v = parseInt(val,10) || 2;
+      v = Math.min(20, Math.max(2, v));
+      blocksNum.value = v;
+      blocksRange.value = v;
+      document.getElementById('blocksText').textContent = v;
+    }
+
+    function setFormat(fmt, el) {
+      outputFormat = fmt;
+      document.querySelectorAll('.formatButtons button').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    }
+    document.getElementById('keepOriginalFormat').addEventListener('change', e => keepOriginal = e.target.checked);
+
+    // --- file handling ---
+    function processFiles(files) {
+      Array.from(files).sort((a,b)=>a.name.localeCompare(b.name)).forEach(file => {
+        const name = file.name.toLowerCase();
+        if (name.endsWith('.zip') || name.endsWith('.cbz')) {
+          handleZipFile(file);
+        } else if (file.type.startsWith('image/')) {
+          addImageFile(file);
+        }
+      });
+      updateStats();
+    }
+
+    async function handleZipFile(zipFile) {
+      try {
+        const zip = await JSZip.loadAsync(zipFile);
+        const promises = [];
+        zip.forEach((relativePath, zipEntry) => {
+          if (!zipEntry.dir && /\.(png|jpe?g|webp|gif|bmp)$/i.test(relativePath)) {
+            promises.push(
+              zipEntry.async('blob').then(blob => {
+                const name = relativePath.split('/').pop() || 'image';
+                return new File([blob], name, { type: blob.type || 'image/png' });
+              })
+            );
+          }
+        });
+        const extracted = await Promise.all(promises);
+        extracted.forEach(f => addImageFile(f));
+      } catch(e) {
+        alert('Failed to read archive: ' + e.message);
+      }
+      updateStats();
+    }
+
+    function addImageFile(file) {
+      const url = URL.createObjectURL(file);
+      images.push({ file, url, name: file.name });
+      previewGrid.innerHTML += `
+        <div class="card">
+          <img src="${url}" alt="${file.name}">
+          <div class="cardInfo"><span>${file.name}</span></div>
+        </div>`;
+    }
+
+    function updateStats() {
+      document.getElementById('totalImages').textContent = images.length;
+    }
+
+    // URL import
+    window.urlPrompt = () => {
+      const url = prompt('Paste image URL:');
+      if (url) loadURL(url);
+    };
+    async function loadURL(url) {
+      try {
+        const resp = await fetch(url, { mode: 'cors' });
+        if (!resp.ok) throw new Error('Network error');
+        const blob = await resp.blob();
+        if (!blob.type.startsWith('image/')) throw new Error('Not an image');
+        const name = url.split('/').pop().split('?')[0] || 'image.jpg';
+        addImageFile(new File([blob], name, { type: blob.type }));
+        updateStats();
+      } catch(e) { alert('Could not load. Try uploading manually.'); }
+    }
+
+    // Event listeners
+    mainFileInput.addEventListener('change', e => { if (e.target.files.length) processFiles(e.target.files); });
+    multiFileInput.addEventListener('change', e => { if (e.target.files.length) processFiles(e.target.files); });
+    folderInputDesktop.addEventListener('change', e => { if (e.target.files.length) processFiles(e.target.files); });
+
+    // Split engine
+    function loadImageElement(src) {
+      return new Promise(res => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.src = src;
+      });
+    }
+
+    function getSplitParams() {
+      const overlap = document.getElementById('overlapCheckbox').checked ? parseInt(document.getElementById('overlapPixels').value,10)||0 : 0;
+      let cols=1, rows=1;
+      if (splitMode === 'vertical') rows = parseInt(blocksNum.value,10)||2;
+      else if (splitMode === 'horizontal') cols = parseInt(blocksNum.value,10)||2;
+      else {
+        cols = parseInt(document.getElementById('gridCols').value,10)||2;
+        rows = parseInt(document.getElementById('gridRows').value,10)||2;
+      }
+      return { rows, cols, overlap };
+    }
+
+    function determineRegions(imgW, imgH, params) {
+      const { rows, cols, overlap } = params;
+      const rowHeights = [], colWidths = [];
+      const baseH = Math.floor(imgH / rows), baseW = Math.floor(imgW / cols);
+      for (let i=0;i<rows;i++) rowHeights.push(i===rows-1 ? imgH - baseH*(rows-1) : baseH);
+      for (let j=0;j<cols;j++) colWidths.push(j===cols-1 ? imgW - baseW*(cols-1) : baseW);
+
+      const regions = [];
+      let yAcc=0;
+      for (let r=0;r<rows;r++) {
+        let xAcc=0;
+        for (let c=0;c<cols;c++) {
+          let sx=xAcc, sy=yAcc, sw=colWidths[c], sh=rowHeights[r];
+          if (overlap) {
+            if (c>0) { sx = Math.max(0, xAcc - overlap); sw = colWidths[c] + overlap + (c<cols-1?overlap:0); }
+            else sw = colWidths[c] + (cols>1?overlap:0);
+            if (r>0) { sy = Math.max(0, yAcc - overlap); sh = rowHeights[r] + overlap + (r<rows-1?overlap:0); }
+            else sh = rowHeights[r] + (rows>1?overlap:0);
+            if (sx+sw > imgW) sw = imgW - sx;
+            if (sy+sh > imgH) sh = imgH - sy;
+          }
+          regions.push({sx,sy,sw,sh, row: r, col: c});
+          xAcc += colWidths[c];
+        }
+        yAcc += rowHeights[r];
+      }
+      return regions;
+    }
+
+    window.splitImages = async () => {
+      if (!images.length) { alert('Add images first.'); return; }
+      results = []; outputGrid.innerHTML = '';
+      const params = getSplitParams();
+      const quality = parseInt(document.getElementById('quality').value,10)/100;
+      for (let item of images) {
+        const img = await loadImageElement(item.url);
+        const regions = determineRegions(img.width, img.height, params);
+        const baseName = item.name.replace(/\.[^.]+$/,'');
+        for (let reg of regions) {
+          const canvas = document.createElement('canvas');
+          canvas.width = reg.sw; canvas.height = reg.sh;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, reg.sx, reg.sy, reg.sw, reg.sh, 0, 0, reg.sw, reg.sh);
+          let mime = outputFormat;
+          if (keepOriginal) {
+            if (item.file.type === 'image/jpeg') mime='image/jpeg';
+            else if (item.file.type === 'image/webp') mime='image/webp';
+            else mime='image/png';
+          }
+          const blob = await new Promise(r => canvas.toBlob(r, mime, quality));
+          const ext = mime==='image/jpeg'?'jpg':(mime==='image/webp'?'webp':'png');
+          const filename = `${baseName}_r${reg.row+1}c${reg.col+1}.${ext}`;
+          const url = URL.createObjectURL(blob);
+          results.push({ blob, url, filename, originalName: item.name });
+          outputGrid.innerHTML += `<div class="card"><img src="${url}" alt="${filename}"><div class="cardInfo"><span>${filename}</span><a href="${url}" download="${filename}">⬇</a></div></div>`;
+        }
+      }
+      document.getElementById('totalOutputs').textContent = results.length;
+    };
+
+    window.downloadZip = async () => {
+      if (!results.length) { alert('No output yet.'); return; }
+      const zip = new JSZip();
+      const grouped = {};
+      results.forEach(r => {
+        const folder = r.originalName.replace(/\.[^.]+$/,'') || 'images';
+        if (!grouped[folder]) grouped[folder] = [];
+        grouped[folder].push(r);
+      });
+      for (let f in grouped) {
+        const folderZip = zip.folder(f);
+        grouped[f].forEach(r => folderZip.file(r.filename, r.blob));
+      }
+      const blob = await zip.generateAsync({type:'blob'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'split_images.zip';
+      a.click();
+    };
+
+    window.togglePreview = () => {
+      previewGrid.style.display = previewGrid.style.display === 'none' ? 'grid' : 'none';
+    };
+    window.clearAll = () => {
+      images = []; results = [];
+      previewGrid.innerHTML = ''; outputGrid.innerHTML = '';
+      document.getElementById('totalImages').textContent = '0';
+      document.getElementById('totalOutputs').textContent = '0';
+    };
+
+    // expose globals
+    window.toggleSidebar = toggleSidebar;
+    window.setMode = setMode;
+    window.setFormat = setFormat;
+    window.blocksChanged = blocksChanged;
+    window.blocksNumChanged = blocksNumChanged;
+
+    setMode('vertical');
+    blocksRange.addEventListener('input', e => blocksChanged(e.target.value));
+    blocksNum.addEventListener('input', e => blocksNumChanged(e.target.value));
+  })();
+</script>
+</body>
+</html>
