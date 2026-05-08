@@ -5,6 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
   <title>Image Splitter – Webtoon & Manhwa</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- PWA Manifest & iOS support -->
+  <link rel="manifest" href="data:application/manifest+json,{
+    &quot;name&quot;: &quot;Webtoon Splitter&quot;,
+    &quot;short_name&quot;: &quot;Splitter&quot;,
+    &quot;start_url&quot;: &quot;.&quot;,
+    &quot;display&quot;: &quot;standalone&quot;,
+    &quot;background_color&quot;: &quot;#070b2b&quot;,
+    &quot;theme_color&quot;: &quot;#8b5cf6&quot;,
+    &quot;icons&quot;: [
+      {
+        &quot;src&quot;: &quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%238b5cf6'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='45' fill='white' font-weight='bold'>✂</text></svg>&quot;,
+        &quot;sizes&quot;: &quot;100x100&quot;,
+        &quot;type&quot;: &quot;image/svg+xml&quot;
+      }
+    ]
+  }">
+  <meta name="theme-color" content="#8b5cf6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Splitter">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%238b5cf6'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='45' fill='white' font-weight='bold'>✂</text></svg>">
+
   <style>
     * {
       margin: 0;
@@ -334,7 +357,6 @@
       Toggle Preview
     </button>
     <button class="sideBtn" onclick="clearAll()">
-      <!-- Using X icon for clear (we can later replace with trash if provided) -->
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M6 6l12 12"/><path d="M18 6L6 18"/>
       </svg>
@@ -357,7 +379,7 @@
     <div class="logo" style="margin-bottom:15px;">Image Splitter</div>
     <div style="color:#aaa; margin-bottom:20px;">Split Webtoon & Manhwa pages instantly.</div>
 
-    <!-- Main upload box (accepts images/ZIP/CBZ) -->
+    <!-- Main upload box -->
     <div class="uploadBox" onclick="document.getElementById('mainFileInput').click()">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M7 18h10a4 4 0 0 0 0-8 5 5 0 0 0-9.7-1.5A4 4 0 0 0 7 18z"/>
@@ -713,4 +735,4 @@
   })();
 </script>
 </body>
-</html>
+        </html>
