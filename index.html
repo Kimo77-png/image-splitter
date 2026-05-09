@@ -757,5 +757,13 @@
     blocksNum.addEventListener('input', e => blocksNumChanged(e.target.value));
   })();
 </script>
+
+<!-- Hide the "Download Android App" button when running as an installed PWA/APK -->
+<script>
+  if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+    const downloadBtn = document.querySelector('a[href="WebtoonSplitter.apk"]');
+    if (downloadBtn) downloadBtn.style.display = 'none';
+  }
+</script>
 </body>
-</html>
+  </html>
