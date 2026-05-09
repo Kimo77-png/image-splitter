@@ -379,6 +379,32 @@
     <div class="logo" style="margin-bottom:15px;">Image Splitter</div>
     <div style="color:#aaa; margin-bottom:20px;">Split Webtoon & Manhwa pages instantly.</div>
 
+    <!-- 👇 ANDROID APP DOWNLOAD BUTTON – right here -->
+    <a href="WebtoonSplitter.apk" download style="
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      width:100%;
+      padding:16px;
+      border-radius:20px;
+      background:linear-gradient(135deg,#8b5cf6,#ec4899);
+      color:white;
+      font-size:17px;
+      font-weight:700;
+      text-decoration:none;
+      box-shadow:0 8px 25px rgba(139,92,246,0.35);
+      transition:0.3s;
+      margin-bottom:20px;
+    ">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v11"></path>
+        <path d="M7 11l5 5 5-5"></path>
+        <path d="M5 21h14"></path>
+      </svg>
+      <span>Download Android App</span>
+    </a>
+
     <!-- Main upload box -->
     <div class="uploadBox" onclick="document.getElementById('mainFileInput').click()">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -489,6 +515,7 @@
 </div>
 
 <script>
+  // (all the original JavaScript remains exactly the same)
   (function() {
     let images = [];
     let results = [];
@@ -589,7 +616,6 @@
       document.getElementById('totalImages').textContent = images.length;
     }
 
-    // URL import
     window.urlPrompt = () => {
       const url = prompt('Paste image URL:');
       if (url) loadURL(url);
@@ -606,12 +632,10 @@
       } catch(e) { alert('Could not load. Try uploading manually.'); }
     }
 
-    // Event listeners
     mainFileInput.addEventListener('change', e => { if (e.target.files.length) processFiles(e.target.files); });
     multiFileInput.addEventListener('change', e => { if (e.target.files.length) processFiles(e.target.files); });
     folderInputDesktop.addEventListener('change', e => { if (e.target.files.length) processFiles(e.target.files); });
 
-    // Split engine
     function loadImageElement(src) {
       return new Promise(res => {
         const img = new Image();
@@ -722,7 +746,6 @@
       document.getElementById('totalOutputs').textContent = '0';
     };
 
-    // expose globals
     window.toggleSidebar = toggleSidebar;
     window.setMode = setMode;
     window.setFormat = setFormat;
@@ -735,4 +758,4 @@
   })();
 </script>
 </body>
-        </html>
+</html>
